@@ -1,0 +1,9 @@
+ you need to try to make a function that first figures out the
+byte postions and assigns the label the byte postion in a hash table, it can do the math by just assuming 
+that all labels are 32 bit adresss and counting forward this would work for forward refrence because on the second passes
+instead of putting random 32 bits you get the binaray represntaiton of the adress and put that in there, then all we have to do is 
+make sure that the instructions are a multiple of 8 and then have a function 
+that splits it up in to vector of strings for each line then make a vector of vector of strings and just combine
+it all together with an iterator counting for byte adress (this may be right or may be a bad method but if
+it is right it can be used to help with doing the first pass function) 
+

@@ -6,6 +6,15 @@
 #include <vector>
 #include <string.h>
 
+
+unordered_map<string, int> umap;
+ 
+    // inserting values by using [] operator
+    umap["GeeksforGeeks"] = 10;
+    umap["Practice"] = 20;
+   umap["Contribute"] = 30;
+
+
 using namespace std;
 
 // struct labels{
