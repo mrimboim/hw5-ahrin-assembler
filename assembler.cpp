@@ -16,7 +16,7 @@
 using namespace std;
 
 int lastByte;
-int currentByte = 0; 
+int currentByte = 0;
 // Table of all known command and reg values in bitstring
 unordered_map<string, string> conversionTable{
     /* registers */
@@ -64,7 +64,6 @@ int openFile(string fileName, vector<string> &buffer)
         {
 
             buffer.push_back(line);
-            cout << line << '\n'; // debugComment
         }
         file.close();
         return 0;
@@ -94,35 +93,55 @@ string numToBinary(int input)
             binaryRep[i] = '1';
         }
     }
-    // cout << "binaryRep: " << binaryRep << '\n'; //debugComment
-    // cout << "binary#10: 00000000000000000000000000001010" <<   '\n'; //debugComment
-    // cout << "Size of binary rep: " << binaryRep.size() << '\n'; //debugComment
     return binaryRep;
 }
 
-string convertOper(string command){
+string convertOper(string command)
+{
     string commandBitStringWithModeCode;
     string value;
     /* Immediate */
-    if(command.at(0) == '$'){
+    if (command.at(0) == '$')
+    {
         commandBitStringWithModeCode = conversionTable["im"];
         command = command.substr(1);
-        if(isalpha(command[0])){
-            value = labelTable[command];
+        if (isalpha(command[0]))
+        {
+            string tempLabelval = "0";
+            if (labelTable.count(command))
+            {
+                tempLabelval = labelTable[command];
+            }
+
+            value = numToBinary(stoi(tempLabelval));
             commandBitStringWithModeCode += value;
-        }else{
+        }
+        else
+        {
             value = numToBinary(stoi(command));
             commandBitStringWithModeCode += value;
         }
-    }else if(command == "R1" || command == "R2" || command == "R3" || command == "R4" || command == "R5" || command == "R6" || command == "RS" || command == "RB"){
+    }
+    else if (command == "R1" || command == "R2" || command == "R3" || command == "R4" || command == "R5" || command == "R6" || command == "RS" || command == "RB")
+    {
         commandBitStringWithModeCode = conversionTable["reg"];
         value = conversionTable[command];
         commandBitStringWithModeCode += value;
-    }else if(isalpha(command[0])){
+    }
+    else if (isalpha(command[0]))
+    {
         commandBitStringWithModeCode = conversionTable["dir"];
-        value = labelTable[command];
+        string tempLabelval = "0";
+        if (labelTable.count(command))
+        {
+            tempLabelval = labelTable[command];
+        }
+
+        value = numToBinary(stoi(tempLabelval));
         commandBitStringWithModeCode += value;
-    }else{
+    }
+    else
+    {
         commandBitStringWithModeCode = conversionTable["ind"];
         size_t pos = 0;
         string token;
@@ -136,10 +155,7 @@ string convertOper(string command){
         value += conversionTable[token];
 
         commandBitStringWithModeCode += value;
-       
-
     }
-
 
     return commandBitStringWithModeCode;
 }
@@ -147,7 +163,6 @@ string convertToMachine(string inputString)
 {
     string bitString;
     inputString.erase(0, 4);
-    // cout << "String without whitespace:" << inputString <<  '\n'; //debugComment
     if (inputString.at(0) == 'r')
     {
         bitString = conversionTable["ret"];
@@ -234,31 +249,37 @@ string convertToMachine(string inputString)
 
     int remainingZeros;
     remainingZeros = (int)bitString.size() % 8;
-    remainingZeros = 8 - remainingZeros;
-    string trailingZeros(remainingZeros, '0');
+    if (remainingZeros != 0)
+    {
+        remainingZeros = 8 - remainingZeros;
+        string trailingZeros(remainingZeros, '0');
 
-    bitString = bitString + trailingZeros;
+        bitString = bitString + trailingZeros;
+    }
     return bitString;
 }
-string stylizedString(string fullBitString){
-    string formatedBytes = "";
 
-    int parts = fullBitString.size()/8;
+string stylizedString(string fullBitString)
+{
+    string formatedBytes = "";
+    int parts = fullBitString.size() / 8;
     int i;
-    for(i = 0; i < parts; i++){
-        formatedBytes += "Bytes"
+    for (i = 0; i < parts; i++)
+    {
+        int j = 0;
+        // formatedBytes += "Bytes" << right << setw(3) << (topLine + i) << " " << '\n'; you need to make a display function that literayly just does this so that you can use setw
+        formatedBytes = "";
+        cout << "Byte" << right << setw(3) << currentByte << ": "; // debugComment
+        for (j = 0; j < 8; j++)
+        {
+            formatedBytes.push_back(fullBitString[(8 * i) + j]);
+        }
+        currentByte++;
+        cout << formatedBytes << '\n';
     }
-/* FIXME:
-   -all you need to do is just add a bytes formated with setw that reads
-   in the currentbyte then you do a loop (might need to reverse the oder of the loopshere
-   but in that loop you copy 8 chars then copy newline
-   then you add 1 to currentbyt after newline is added)
-   -for the last thing for the labels all you got to do is just make the labels currentbyte+1 or just current byte 
-   (i dont think you need lastbyte variable)
-   -lastly you just have to reacall the entire proccess function but this time
-   without touching the labelTabel and using it to write in the values instead of x's */
     return formatedBytes;
 }
+
 int parseProccess(vector<string> fileContents)
 {
     /*-------Here we do validation of double label-----*/
@@ -290,41 +311,31 @@ int parseProccess(vector<string> fileContents)
                 }
                 tempLabelHolder.push_back(currentInputString); /* this is a comment */
             }
-            string labelVal = numToBinary((currentByte));//cant do +1 since the first adress is always zero and 0 + 1 is not zero 
-            labelTable[currentInputString] = labelVal;
+            // string labelVal = numToBinary((currentByte)); // cant do +1 since the first adress is always zero and 0 + 1 is not zero
+            labelTable[currentInputString] = to_string(currentByte);
         }
         else
         {
+
+            cout.setstate(ios_base::failbit);
             lablessStringVector.push_back(currentInputString);
-            //cout << '\n';
-            //cout << "Machine rep:" << convertToMachine(currentInputString) << '\n'; //debugComment 
             currentInputString = convertToMachine(currentInputString);
-            currentInputString = stylizeString(currentInputString);
+            currentInputString = stylizedString(currentInputString);
+            cout.clear();
         }
-
-        cout << currentInputString <<  '\n'; //debugComment    
     }
-
-    // int iter1;
-    // int iter2;
-    // cout << "Lables:" <<  '\n'; //debugComment
-    // for(iter1 = 0; iter1 < (int)tempLabelHolder.size(); iter1++){
-    //     cout << tempLabelHolder[iter1] << '\n'; //debugComment
-    // }
-    // cout << "NON-Labels:" <<  '\n'; //debugComment
-    // for(iter2 = 0; iter2 < (int)lablessStringVector.size(); iter2++){
-    //     cout << lablessStringVector[iter2] << '\n'; //debugComment
-    // }
-    /*-----Now that double label check we can do first pass*/
-    /* for (every string){
-        bitPostion = 0
-    }
-    ) */
     
+    int l;
+    currentByte = 0;
+    for (l = 0; l < (int)lablessStringVector.size(); l++)
+    {
+        string currentInputString = lablessStringVector[l];
+        currentInputString = convertToMachine(currentInputString);
+        currentInputString = stylizedString(currentInputString);
+    }
+
     return 0;
 }
-
-
 
 /* Runs open file and parse proccesor  */
 int main(int argc, char *argv[])
@@ -353,7 +364,6 @@ int main(int argc, char *argv[])
         return 2;
     }
 
-    numToBinary(INT32_MIN); // this works since we will not be given invalid sizes of ints so we can just use that same thing and input ints even if they are unsigneds
 
     /*                      PROCCESING
     --------------------------------------------------------------*/

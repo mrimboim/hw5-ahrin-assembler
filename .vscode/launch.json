@@ -11,7 +11,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${fileDirname}/${fileBasenameNoExtension}",
-            "args": ["${input:fileName}"],
+            "args": ["inputs/${input:fileName}"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
