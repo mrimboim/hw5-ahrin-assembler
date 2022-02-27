@@ -16,6 +16,7 @@
 using namespace std;
 
 int lastByte;
+int currentByte = 0; 
 // Table of all known command and reg values in bitstring
 unordered_map<string, string> conversionTable{
     /* registers */
@@ -239,7 +240,25 @@ string convertToMachine(string inputString)
     bitString = bitString + trailingZeros;
     return bitString;
 }
+string stylizedString(string fullBitString){
+    string formatedBytes = "";
 
+    int parts = fullBitString.size()/8;
+    int i;
+    for(i = 0; i < parts; i++){
+        formatedBytes += "Bytes"
+    }
+/* FIXME:
+   -all you need to do is just add a bytes formated with setw that reads
+   in the currentbyte then you do a loop (might need to reverse the oder of the loopshere
+   but in that loop you copy 8 chars then copy newline
+   then you add 1 to currentbyt after newline is added)
+   -for the last thing for the labels all you got to do is just make the labels currentbyte+1 or just current byte 
+   (i dont think you need lastbyte variable)
+   -lastly you just have to reacall the entire proccess function but this time
+   without touching the labelTabel and using it to write in the values instead of x's */
+    return formatedBytes;
+}
 int parseProccess(vector<string> fileContents)
 {
     /*-------Here we do validation of double label-----*/
@@ -271,8 +290,8 @@ int parseProccess(vector<string> fileContents)
                 }
                 tempLabelHolder.push_back(currentInputString); /* this is a comment */
             }
-            string zeros (32,'X');
-            labelTable[currentInputString] = zeros;
+            string labelVal = numToBinary((currentByte));//cant do +1 since the first adress is always zero and 0 + 1 is not zero 
+            labelTable[currentInputString] = labelVal;
         }
         else
         {
@@ -280,6 +299,7 @@ int parseProccess(vector<string> fileContents)
             //cout << '\n';
             //cout << "Machine rep:" << convertToMachine(currentInputString) << '\n'; //debugComment 
             currentInputString = convertToMachine(currentInputString);
+            currentInputString = stylizeString(currentInputString);
         }
 
         cout << currentInputString <<  '\n'; //debugComment    

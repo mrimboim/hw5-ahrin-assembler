@@ -28,3 +28,6 @@ btw at the end of each vector there will be a string element called extra which 
 so we take input string, we break it up into its components and convert them into strings, once weve finished we check the length of said string and based on how far it is from a multiple of 8 we make a string element called extra that contains the neccesary padding of zeros. lastly we make string into a full string and have function that breaks it up into multiples of 8 and then adds each one to a vector and adds that vector to a vector 
 
 
+l;iterly just do current byte plus 1, for the label value thats crazy 
+
+how do i then recall so that the strings get printed again 
