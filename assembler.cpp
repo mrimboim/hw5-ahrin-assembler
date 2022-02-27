@@ -15,6 +15,7 @@
 
 using namespace std;
 
+int lastByte;
 // Table of all known command and reg values in bitstring
 unordered_map<string, string> conversionTable{
     /* registers */
@@ -73,6 +74,30 @@ int openFile(string fileName, vector<string> &buffer)
     }
 }
 
+string numToBinary(int input)
+{
+    string binaryRep(32, '0');
+    unsigned int conversionToUI = (UINT_MAX & input);
+    unsigned int compareOne = 1; /// this will give us a 32 bit mask with a 1 in the leftmost place which we will move to each index to check for value of bit
+
+    int i;
+    for (i = 0; i < 32; i++)
+    {
+        // printf("The compareONE is currently %u\n", (compareOne << (31 - i)));
+        if ((conversionToUI & (compareOne << (31 - i))) == 0) // checking each digit and then shifting left 31 - i  times so that i input the array in the correct order with msb rightmost
+        {
+            binaryRep[i] = '0';
+        }
+        else
+        { // if the AND bitwise operator is anything but zero it means there is a 1 in that location or index in the bit string/array
+            binaryRep[i] = '1';
+        }
+    }
+    // cout << "binaryRep: " << binaryRep << '\n'; //debugComment
+    // cout << "binary#10: 00000000000000000000000000001010" <<   '\n'; //debugComment
+    // cout << "Size of binary rep: " << binaryRep.size() << '\n'; //debugComment
+    return binaryRep;
+}
 
 string convertOper(string command){
     string commandBitStringWithModeCode;
@@ -94,10 +119,25 @@ string convertOper(string command){
         commandBitStringWithModeCode += value;
     }else if(isalpha(command[0])){
         commandBitStringWithModeCode = conversionTable["dir"];
-        value = labelTable
+        value = labelTable[command];
+        commandBitStringWithModeCode += value;
+    }else{
+        commandBitStringWithModeCode = conversionTable["ind"];
+        size_t pos = 0;
+        string token;
+        pos = command.find("(");
+        token = command.substr(0, pos);
+        value = numToBinary(stoi(token));
+        command.erase(0, pos + 1);
+
+        pos = command.find(")");
+        token = command.substr(0, pos);
+        value += conversionTable[token];
+
+        commandBitStringWithModeCode += value;
+       
+
     }
-
-
 
 
     return commandBitStringWithModeCode;
@@ -194,7 +234,7 @@ string convertToMachine(string inputString)
     int remainingZeros;
     remainingZeros = (int)bitString.size() % 8;
     remainingZeros = 8 - remainingZeros;
-    string trailingZeros(remainingZeros, ' ');
+    string trailingZeros(remainingZeros, '0');
 
     bitString = bitString + trailingZeros;
     return bitString;
@@ -231,15 +271,18 @@ int parseProccess(vector<string> fileContents)
                 }
                 tempLabelHolder.push_back(currentInputString); /* this is a comment */
             }
-            string zeros (32,'0');
+            string zeros (32,'X');
             labelTable[currentInputString] = zeros;
         }
         else
         {
             lablessStringVector.push_back(currentInputString);
-            cout << '\n';
-            convertToMachine(currentInputString);
+            //cout << '\n';
+            //cout << "Machine rep:" << convertToMachine(currentInputString) << '\n'; //debugComment 
+            currentInputString = convertToMachine(currentInputString);
         }
+
+        cout << currentInputString <<  '\n'; //debugComment    
     }
 
     // int iter1;
@@ -257,34 +300,11 @@ int parseProccess(vector<string> fileContents)
         bitPostion = 0
     }
     ) */
-
+    
     return 0;
 }
 
-string numToBinary(int input)
-{
-    string binaryRep(32, '0');
-    unsigned int conversionToUI = (UINT_MAX & input);
-    unsigned int compareOne = 1; /// this will give us a 32 bit mask with a 1 in the leftmost place which we will move to each index to check for value of bit
 
-    int i;
-    for (i = 0; i < 32; i++)
-    {
-        // printf("The compareONE is currently %u\n", (compareOne << (31 - i)));
-        if ((conversionToUI & (compareOne << (31 - i))) == 0) // checking each digit and then shifting left 31 - i  times so that i input the array in the correct order with msb rightmost
-        {
-            binaryRep[i] = '0';
-        }
-        else
-        { // if the AND bitwise operator is anything but zero it means there is a 1 in that location or index in the bit string/array
-            binaryRep[i] = '1';
-        }
-    }
-    // cout << "binaryRep: " << binaryRep << '\n'; //debugComment
-    // cout << "binary#10: 00000000000000000000000000001010" <<   '\n'; //debugComment
-    // cout << "Size of binary rep: " << binaryRep.size() << '\n'; //debugComment
-    return binaryRep;
-}
 
 /* Runs open file and parse proccesor  */
 int main(int argc, char *argv[])
