@@ -4,36 +4,14 @@
 #include <fstream>
 #include <stack>
 #include <vector>
-#include <string.h>
-
-
-unordered_map<string, int> umap;
- 
-    // inserting values by using [] operator
-    umap["GeeksforGeeks"] = 10;
-    umap["Practice"] = 20;
-   umap["Contribute"] = 30;
-
+#include <string>
+#include <unordered_map>
 
 using namespace std;
 
-// struct labels{
-//     int pos;
-//     string value;
-// }
-// struct variable{
-//     int pos;
 
-// }
-// struct instruction{
+unordered_map<string, string> umap{{"mov", "010"}};
 
-// }
-// struct data{
-//     string type;
-//     labels label;
-//     variable var;
-//     instruction ins;
-// }
 
 int openFile(string fileName, vector<string> &buffer) // later add pass by ref for data struct
 {
@@ -82,7 +60,7 @@ int parseProccess(vector<string> inputString)
                           return 1;
                       }
                     }
-                    tempLabel.push_back(currentString);
+                    tempLabel.push_back(currentString);/* this is a comment */
             }
             //here we do the actual proccesing of figuring out the value of the label by just looking at the adress of the next thing
             //the problem i see here is we don't really know the byte adress
@@ -99,7 +77,7 @@ int main(int argc, char *argv[])
     // intial command line validation
     if (argc < 2)
     {
-        cout << "Wrong number of arguments." << '\n';
+        cout << "Wrong number of arguments." <<  '\n';
         return 1;
     }
     else if (argc > 2)
@@ -107,6 +85,7 @@ int main(int argc, char *argv[])
         cout << "Wrong number of arguments." << '\n';
         return 1;
     }
+    
 
     /*                       OPEN FILE
     ----------------------------------------------------------------*/
@@ -133,13 +112,11 @@ int main(int argc, char *argv[])
     /*                          PRINTING
     --------------------------------------------------------------*/
 
+
+
+
+
     /*                          EXIT
     --------------------------------------------------------------*/
     return 0;
 }
-
-/* To DO:
-- make the open file be able to check if the file has any duplicate labels
-- it can work by making the instructions a vector of strings and then making the main thing a vector of vectors of strings
-- make a proccesing function that takes each line of the vector of string and puts it into  a structre of string, type of overarching instrution,
-spefici instruction, and possibly operands. */
