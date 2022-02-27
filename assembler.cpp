@@ -1,12 +1,12 @@
 /* TODO:
-    -make a table with all code and reg values in binary string
-    -bring in the binary converty for nums
+    -
     - */
 #include <iostream>
 #include <iomanip>
+#include <stdio.h>
 #include <stdlib.h>
 #include <fstream>
-#include <stack>
+// #include <stack>
 #include <vector>
 #include <string>
 #include <unordered_map>
@@ -46,7 +46,8 @@ unordered_map<string, string> umap{
 
 };
 
-int openFile(string fileName, vector<string> &buffer) // later add pass by ref for data struct
+// Opens file given and puts the lines into a vector of strings 
+int openFile(string fileName, vector<string> &buffer) 
 {
     string line;
     ifstream file(fileName);
@@ -69,40 +70,64 @@ int openFile(string fileName, vector<string> &buffer) // later add pass by ref f
 
 int parseProccess(vector<string> inputString)
 {
-    // check for labels
-    vector<string> tempLabel; // while parsing check to see that the current label is not contained in the other ones
+/*-------Here we do validation of double label-----*/
+    /* holds only the label string elements. Will be used for double label check*/
+    vector<string> tempLabelHolder; 
     int i;
     for (i = 0; i < (int)inputString.size(); i++) // main loop of proccesing
     {
-        string currentString = inputString[i];
+        string currentInputString = inputString[i];
         // three casses where one is label one is var and one is instruction
-        if (currentString.at(0) != ' ') // label clause
+        if (currentInputString.at(0) != ' ') // checks if its a label clause
         {
-            if (tempLabel.empty())
+            if (tempLabelHolder.empty())
             {
-                tempLabel.push_back(currentString);
+                tempLabelHolder.push_back(currentInputString);
             }
             else
             {
                 int j;
-                for (j = 0; j < (int)tempLabel.size(); j++)
+                for (j = 0; j < (int)tempLabelHolder.size(); j++)
                 {
-                    string compareLabel = tempLabel[j];
-                    if (compareLabel == currentString)
+                    string knownLabel = tempLabelHolder[j];
+                    if (knownLabel == currentInputString)
                     {
                         return 1;
                     }
                 }
-                tempLabel.push_back(currentString); /* this is a comment */
+                tempLabelHolder.push_back(currentInputString); /* this is a comment */
             }
-            // here we do the actual proccesing of figuring out the value of the label by just looking at the adress of the next thing
-            // the problem i see here is we don't really know the byte adress
+            
         }
     }
+/*-----Now that double label check we can do first pass*/    
     return 0;
 }
 
-// MAIN MAIN MAIN MAIN MAIN MAIN MAIN MAIN MAIN MAIN MAIN MAIN
+void numToBinary(unsigned int input)
+{
+    string binaryRep (32, '0');
+    unsigned int compareOne = 1;/// this will give us a 32 bit mask with a 1 in the leftmost place which we will move to each index to check for value of bit 
+    
+    int i;
+    for (i = 0; i < 32; i++)
+    {
+        //printf("The compareONE is currently %u\n", (compareOne << (31 - i)));
+        if((input & (compareOne << (31 - i) )) == 0)//checking each digit and then shifting left 31 - i  times so that i input the array in the correct order with msb rightmost
+        {
+            binaryRep[i] = '0';
+        }else{//if the AND bitwise operator is anything but zero it means there is a 1 in that location or index in the bit string/array 
+            binaryRep[i] = '1';
+        }
+    }
+    // cout << "binaryRep: " << binaryRep << '\n'; //debugComment 
+    // cout << "binary#10: 00000000000000000000000000001010" <<   '\n'; //debugComment 
+    // cout << "Size of binary rep: " << binaryRep.size() << '\n'; //debugComment   
+
+
+}
+
+/* Runs open file and parse proccesor  */
 int main(int argc, char *argv[])
 {
     // intial command line validation
