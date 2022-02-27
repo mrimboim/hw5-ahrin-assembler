@@ -11,6 +11,7 @@
 #include <string>
 #include <unordered_map>
 #include <limits.h>
+#include <cctype>
 
 using namespace std;
 
@@ -39,18 +40,18 @@ unordered_map<string, string> conversionTable{
     {"ret", "1010"},
     {"nop", "1011"},
     /* addresing modes  */
-    {"immediate", "00"},
-    {"register", "01"},
-    {"direct", "10"},
-    {"indexed", "11"},//there is a structre to instructions so you know you will need to look at operand to get mode, 
-    //meaning that the first non var thing is instruction then operand (where we can get  the type of mode from)
+    {"im", "00"},
+    {"reg", "01"},
+    {"dir", "10"},
+    {"ind", "11"}, // there is a structre to instructions so you know you will need to look at operand to get mode,
+    // meaning that the first non var thing is instruction then operand (where we can get  the type of mode from)
 };
 
 /* contains the intail zero value of table and then actual value all in string form */
 unordered_map<string, string> labelTable;
 
-// Opens file given and puts the lines into a vector of strings 
-int openFile(string fileName, vector<string> &buffer) 
+// Opens file given and puts the lines into a vector of strings
+int openFile(string fileName, vector<string> &buffer)
 {
     string line;
     ifstream file(fileName);
@@ -61,7 +62,7 @@ int openFile(string fileName, vector<string> &buffer)
         {
 
             buffer.push_back(line);
-            cout << line <<  '\n'; //debugComment 
+            cout << line << '\n'; // debugComment
         }
         file.close();
         return 0;
@@ -71,31 +72,137 @@ int openFile(string fileName, vector<string> &buffer)
         return 1;
     }
 }
-string convertToMachine(string inputString) {
-    string bitString;
-    inputString.erase(0,4);
-    // cout << "String without whitespace:" << inputString <<  '\n'; //debugComment
-    if(inputString.at(0) == 'r'){
-        bitString = conversionTable["ret"];
-    }else if(inputString.at(0) == 'n'){
-        bitString = conversionTable["nop"];
-    }else{
-        //this is  for all other instucts so here we need to tokenize instruction or var
+
+
+string convertOper(string command){
+    string commandBitStringWithModeCode;
+    string value;
+    /* Immediate */
+    if(command.at(0) == '$'){
+        commandBitStringWithModeCode = conversionTable["im"];
+        command = command.substr(1);
+        if(isalpha(command[0])){
+            value = labelTable[command];
+            commandBitStringWithModeCode += value;
+        }else{
+            value = numToBinary(stoi(command));
+            commandBitStringWithModeCode += value;
+        }
+    }else if(command == "R1" || command == "R2" || command == "R3" || command == "R4" || command == "R5" || command == "R6" || command == "RS" || command == "RB"){
+        commandBitStringWithModeCode = conversionTable["reg"];
+        value = conversionTable[command];
+        commandBitStringWithModeCode += value;
+    }else if(isalpha(command[0])){
+        commandBitStringWithModeCode = conversionTable["dir"];
+        value = labelTable
     }
-    
+
+
+
+
+    return commandBitStringWithModeCode;
+}
+string convertToMachine(string inputString)
+{
+    string bitString;
+    inputString.erase(0, 4);
+    // cout << "String without whitespace:" << inputString <<  '\n'; //debugComment
+    if (inputString.at(0) == 'r')
+    {
+        bitString = conversionTable["ret"];
+    }
+    else if (inputString.at(0) == 'n')
+    {
+        bitString = conversionTable["nop"];
+    }
+    else
+    {
+        size_t pos = 0;
+        vector<string> command;
+        string token;
+        while ((pos = inputString.find(" ")) != string::npos)
+        {
+            token = inputString.substr(0, pos);
+            command.push_back(token);
+            inputString.erase(0, pos + 1);
+        }
+        command.push_back(inputString);
+        // this is  for all other instucts so here we need to tokenize instruction or var
+        if (command.at(0) == "var")
+        {
+            bitString = conversionTable["var"];
+            int var = stoi(command.at(1));
+            string oparand1 = numToBinary(var);
+            bitString = bitString + oparand1;
+        }
+        else
+        {
+            if (command.size() == 2)
+            {
+                string oper1 = convertOper(command.at(1));
+
+                if (command.at(0) == "push")
+                {
+                    bitString = conversionTable["push"] + oper1;
+                }
+                else if (command.at(0) == "pop")
+                {
+                    bitString = conversionTable["pop"] + oper1;
+                }
+                else if (command.at(0) == "call")
+                {
+                    bitString = conversionTable["call"] + oper1;
+                }
+                else if (command.at(0) == "je")
+                {
+                    bitString = conversionTable["je"] + oper1;
+                }
+                else if (command.at(0) == "jge")
+                {
+                    bitString = conversionTable["jge"] + oper1;
+                }
+                else if (command.at(0) == "jl")
+                {
+                    bitString = conversionTable["jl"] + oper1;
+                }
+                else if (command.at(0) == "j")
+                {
+                    bitString = conversionTable["j"] + oper1;
+                }
+            }
+            else
+            {
+                string oper1 = convertOper(command.at(1));
+                string oper2 = convertOper(command.at(2));
+
+                if (command.at(0) == "mov")
+                {
+                    bitString = conversionTable["mov"] + oper1 + oper2;
+                }
+                else if (command.at(0) == "add")
+                {
+                    bitString = conversionTable["add"] + oper1 + oper2;
+                }
+                else if (command.at(0) == "cmp")
+                {
+                    bitString = conversionTable["cmp"] + oper1 + oper2;
+                }
+            }
+        }
+    }
+
     int remainingZeros;
     remainingZeros = (int)bitString.size() % 8;
     remainingZeros = 8 - remainingZeros;
-    string trailingZeros (remainingZeros, ' ');
+    string trailingZeros(remainingZeros, ' ');
 
     bitString = bitString + trailingZeros;
-
-
+    return bitString;
 }
 
 int parseProccess(vector<string> fileContents)
 {
-/*-------Here we do validation of double label-----*/
+    /*-------Here we do validation of double label-----*/
     /* holds only the label string elements. Will be used for double label check*/
     vector<string> tempLabelHolder;
     /* this holds the vector of strings minus all the lables */
@@ -124,56 +231,59 @@ int parseProccess(vector<string> fileContents)
                 }
                 tempLabelHolder.push_back(currentInputString); /* this is a comment */
             }
-
-            
-        }else{
+            string zeros (32,'0');
+            labelTable[currentInputString] = zeros;
+        }
+        else
+        {
             lablessStringVector.push_back(currentInputString);
-            // convertToMachine(currentInputString);
+            cout << '\n';
+            convertToMachine(currentInputString);
         }
     }
 
-
     // int iter1;
     // int iter2;
-    // cout << "Lables:" <<  '\n'; //debugComment 
+    // cout << "Lables:" <<  '\n'; //debugComment
     // for(iter1 = 0; iter1 < (int)tempLabelHolder.size(); iter1++){
-    //     cout << tempLabelHolder[iter1] << '\n'; //debugComment 
+    //     cout << tempLabelHolder[iter1] << '\n'; //debugComment
     // }
-    // cout << "NON-Labels:" <<  '\n'; //debugComment 
+    // cout << "NON-Labels:" <<  '\n'; //debugComment
     // for(iter2 = 0; iter2 < (int)lablessStringVector.size(); iter2++){
-    //     cout << lablessStringVector[iter2] << '\n'; //debugComment 
+    //     cout << lablessStringVector[iter2] << '\n'; //debugComment
     // }
-/*-----Now that double label check we can do first pass*/
-/* for (every string){
-    bitPostion = 0
-}
-) */
+    /*-----Now that double label check we can do first pass*/
+    /* for (every string){
+        bitPostion = 0
+    }
+    ) */
 
     return 0;
 }
 
-void numToBinary(int input)
+string numToBinary(int input)
 {
-    string binaryRep (32, '0');
+    string binaryRep(32, '0');
     unsigned int conversionToUI = (UINT_MAX & input);
-    unsigned int compareOne = 1;/// this will give us a 32 bit mask with a 1 in the leftmost place which we will move to each index to check for value of bit 
-    
+    unsigned int compareOne = 1; /// this will give us a 32 bit mask with a 1 in the leftmost place which we will move to each index to check for value of bit
+
     int i;
     for (i = 0; i < 32; i++)
     {
-        //printf("The compareONE is currently %u\n", (compareOne << (31 - i)));
-        if((conversionToUI & (compareOne << (31 - i) )) == 0)//checking each digit and then shifting left 31 - i  times so that i input the array in the correct order with msb rightmost
+        // printf("The compareONE is currently %u\n", (compareOne << (31 - i)));
+        if ((conversionToUI & (compareOne << (31 - i))) == 0) // checking each digit and then shifting left 31 - i  times so that i input the array in the correct order with msb rightmost
         {
             binaryRep[i] = '0';
-        }else{//if the AND bitwise operator is anything but zero it means there is a 1 in that location or index in the bit string/array 
+        }
+        else
+        { // if the AND bitwise operator is anything but zero it means there is a 1 in that location or index in the bit string/array
             binaryRep[i] = '1';
         }
     }
-    // cout << "binaryRep: " << binaryRep << '\n'; //debugComment 
-    // cout << "binary#10: 00000000000000000000000000001010" <<   '\n'; //debugComment 
-    // cout << "Size of binary rep: " << binaryRep.size() << '\n'; //debugComment   
-
-
+    // cout << "binaryRep: " << binaryRep << '\n'; //debugComment
+    // cout << "binary#10: 00000000000000000000000000001010" <<   '\n'; //debugComment
+    // cout << "Size of binary rep: " << binaryRep.size() << '\n'; //debugComment
+    return binaryRep;
 }
 
 /* Runs open file and parse proccesor  */
@@ -203,7 +313,7 @@ int main(int argc, char *argv[])
         return 2;
     }
 
-    numToBinary(INT32_MIN);//this works since we will not be given invalid sizes of ints so we can just use that same thing and input ints even if they are unsigneds
+    numToBinary(INT32_MIN); // this works since we will not be given invalid sizes of ints so we can just use that same thing and input ints even if they are unsigneds
 
     /*                      PROCCESING
     --------------------------------------------------------------*/
