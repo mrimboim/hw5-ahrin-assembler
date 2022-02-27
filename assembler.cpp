@@ -167,7 +167,7 @@ string convertToMachine(string inputString)
     {
         bitString = conversionTable["ret"];
     }
-    else if (inputString.at(0) == 'n')
+    else if (inputString.at(0) == 'n')sum_arr.s
     {
         bitString = conversionTable["nop"];
     }
@@ -324,7 +324,7 @@ int parseProccess(vector<string> fileContents)
             cout.clear();
         }
     }
-    
+
     int l;
     currentByte = 0;
     for (l = 0; l < (int)lablessStringVector.size(); l++)
