@@ -10,11 +10,12 @@
 #include <vector>
 #include <string>
 #include <unordered_map>
+#include <limits.h>
 
 using namespace std;
 
 // Table of all known command and reg values in bitstring
-unordered_map<string, string> umap{
+unordered_map<string, string> conversionTable{
     /* registers */
     {"R1", "000"},
     {"R2", "001"},
@@ -41,10 +42,12 @@ unordered_map<string, string> umap{
     {"immediate", "00"},
     {"register", "01"},
     {"direct", "10"},
-    {"indexed", "11"},
-    
-
+    {"indexed", "11"},//there is a structre to instructions so you know you will need to look at operand to get mode, 
+    //meaning that the first non var thing is instruction then operand (where we can get  the type of mode from)
 };
+
+/* contains the intail zero value of table and then actual value all in string form */
+unordered_map<string, string> labelTable;
 
 // Opens file given and puts the lines into a vector of strings 
 int openFile(string fileName, vector<string> &buffer) 
@@ -58,6 +61,7 @@ int openFile(string fileName, vector<string> &buffer)
         {
 
             buffer.push_back(line);
+            cout << line <<  '\n'; //debugComment 
         }
         file.close();
         return 0;
@@ -67,16 +71,39 @@ int openFile(string fileName, vector<string> &buffer)
         return 1;
     }
 }
+string convertToMachine(string inputString) {
+    string bitString;
+    inputString.erase(0,4);
+    // cout << "String without whitespace:" << inputString <<  '\n'; //debugComment
+    if(inputString.at(0) == 'r'){
+        bitString = conversionTable["ret"];
+    }else if(inputString.at(0) == 'n'){
+        bitString = conversionTable["nop"];
+    }else{
+        //this is  for all other instucts so here we need to tokenize instruction or var
+    }
+    
+    int remainingZeros;
+    remainingZeros = (int)bitString.size() % 8;
+    remainingZeros = 8 - remainingZeros;
+    string trailingZeros (remainingZeros, ' ');
 
-int parseProccess(vector<string> inputString)
+    bitString = bitString + trailingZeros;
+
+
+}
+
+int parseProccess(vector<string> fileContents)
 {
 /*-------Here we do validation of double label-----*/
     /* holds only the label string elements. Will be used for double label check*/
-    vector<string> tempLabelHolder; 
+    vector<string> tempLabelHolder;
+    /* this holds the vector of strings minus all the lables */
+    vector<string> lablessStringVector;
     int i;
-    for (i = 0; i < (int)inputString.size(); i++) // main loop of proccesing
+    for (i = 0; i < (int)fileContents.size(); i++) // main loop of proccesing
     {
-        string currentInputString = inputString[i];
+        string currentInputString = fileContents[i];
         // three casses where one is label one is var and one is instruction
         if (currentInputString.at(0) != ' ') // checks if its a label clause
         {
@@ -97,23 +124,45 @@ int parseProccess(vector<string> inputString)
                 }
                 tempLabelHolder.push_back(currentInputString); /* this is a comment */
             }
+
             
+        }else{
+            lablessStringVector.push_back(currentInputString);
+            // convertToMachine(currentInputString);
         }
     }
-/*-----Now that double label check we can do first pass*/    
+
+
+    // int iter1;
+    // int iter2;
+    // cout << "Lables:" <<  '\n'; //debugComment 
+    // for(iter1 = 0; iter1 < (int)tempLabelHolder.size(); iter1++){
+    //     cout << tempLabelHolder[iter1] << '\n'; //debugComment 
+    // }
+    // cout << "NON-Labels:" <<  '\n'; //debugComment 
+    // for(iter2 = 0; iter2 < (int)lablessStringVector.size(); iter2++){
+    //     cout << lablessStringVector[iter2] << '\n'; //debugComment 
+    // }
+/*-----Now that double label check we can do first pass*/
+/* for (every string){
+    bitPostion = 0
+}
+) */
+
     return 0;
 }
 
-void numToBinary(unsigned int input)
+void numToBinary(int input)
 {
     string binaryRep (32, '0');
+    unsigned int conversionToUI = (UINT_MAX & input);
     unsigned int compareOne = 1;/// this will give us a 32 bit mask with a 1 in the leftmost place which we will move to each index to check for value of bit 
     
     int i;
     for (i = 0; i < 32; i++)
     {
         //printf("The compareONE is currently %u\n", (compareOne << (31 - i)));
-        if((input & (compareOne << (31 - i) )) == 0)//checking each digit and then shifting left 31 - i  times so that i input the array in the correct order with msb rightmost
+        if((conversionToUI & (compareOne << (31 - i) )) == 0)//checking each digit and then shifting left 31 - i  times so that i input the array in the correct order with msb rightmost
         {
             binaryRep[i] = '0';
         }else{//if the AND bitwise operator is anything but zero it means there is a 1 in that location or index in the bit string/array 
@@ -153,6 +202,8 @@ int main(int argc, char *argv[])
         cout << "Failed to open file." << '\n';
         return 2;
     }
+
+    numToBinary(INT32_MIN);//this works since we will not be given invalid sizes of ints so we can just use that same thing and input ints even if they are unsigneds
 
     /*                      PROCCESING
     --------------------------------------------------------------*/
