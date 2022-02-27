@@ -1,3 +1,7 @@
+/* TODO:
+    -make a table with all code and reg values in binary string
+    -bring in the binary converty for nums
+    - */
 #include <iostream>
 #include <iomanip>
 #include <stdlib.h>
@@ -9,9 +13,38 @@
 
 using namespace std;
 
+// Table of all known command and reg values in bitstring
+unordered_map<string, string> umap{
+    /* registers */
+    {"R1", "000"},
+    {"R2", "001"},
+    {"R3", "010"},
+    {"R4", "011"},
+    {"R5", "100"},
+    {"R6", "101"},
+    {"RS", "110"},
+    {"RB", "111"},
+    /* instructions  */
+    {"mov", "0000"},
+    {"add", "0001"},
+    {"cmp", "0010"},
+    {"push", "0011"},
+    {"pop", "0100"},
+    {"call", "0101"},
+    {"je", "0110"},
+    {"jge", "0111"},
+    {"jl", "1000"},
+    {"j", "1001"},
+    {"ret", "1010"},
+    {"nop", "1011"},
+    /* addresing modes  */
+    {"immediate", "00"},
+    {"register", "01"},
+    {"direct", "10"},
+    {"indexed", "11"},
+    
 
-unordered_map<string, string> umap{{"mov", "010"}};
-
+};
 
 int openFile(string fileName, vector<string> &buffer) // later add pass by ref for data struct
 {
@@ -39,7 +72,7 @@ int parseProccess(vector<string> inputString)
     // check for labels
     vector<string> tempLabel; // while parsing check to see that the current label is not contained in the other ones
     int i;
-    for (i = 0; i < (int)inputString.size(); i++)//main loop of proccesing 
+    for (i = 0; i < (int)inputString.size(); i++) // main loop of proccesing
     {
         string currentString = inputString[i];
         // three casses where one is label one is var and one is instruction
@@ -54,19 +87,17 @@ int parseProccess(vector<string> inputString)
                 int j;
                 for (j = 0; j < (int)tempLabel.size(); j++)
                 {
-                      string compareLabel = tempLabel[j];
-                      if(compareLabel == currentString)
-                      {
-                          return 1;
-                      }
+                    string compareLabel = tempLabel[j];
+                    if (compareLabel == currentString)
+                    {
+                        return 1;
                     }
-                    tempLabel.push_back(currentString);/* this is a comment */
+                }
+                tempLabel.push_back(currentString); /* this is a comment */
             }
-            //here we do the actual proccesing of figuring out the value of the label by just looking at the adress of the next thing
-            //the problem i see here is we don't really know the byte adress
+            // here we do the actual proccesing of figuring out the value of the label by just looking at the adress of the next thing
+            // the problem i see here is we don't really know the byte adress
         }
-   
-
     }
     return 0;
 }
@@ -77,7 +108,7 @@ int main(int argc, char *argv[])
     // intial command line validation
     if (argc < 2)
     {
-        cout << "Wrong number of arguments." <<  '\n';
+        cout << "Wrong number of arguments." << '\n';
         return 1;
     }
     else if (argc > 2)
@@ -85,7 +116,6 @@ int main(int argc, char *argv[])
         cout << "Wrong number of arguments." << '\n';
         return 1;
     }
-    
 
     /*                       OPEN FILE
     ----------------------------------------------------------------*/
@@ -111,10 +141,6 @@ int main(int argc, char *argv[])
 
     /*                          PRINTING
     --------------------------------------------------------------*/
-
-
-
-
 
     /*                          EXIT
     --------------------------------------------------------------*/

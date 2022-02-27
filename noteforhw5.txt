@@ -7,3 +7,5 @@ that splits it up in to vector of strings for each line then make a vector of ve
 it all together with an iterator counting for byte adress (this may be right or may be a bad method but if
 it is right it can be used to help with doing the first pass function) 
 
+-make sure to test with valgrind 
+-you can do diff with the output file to make sure it is really the same 
